@@ -6,7 +6,7 @@ public class Main {
             Connection conn = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/blood_bank",
                     "root",
-                    "Arjunk_2005"
+                    password: Password
             );
             System.out.println("✅ Connected to MySQL!");
             conn.close();
