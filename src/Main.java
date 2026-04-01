@@ -5,15 +5,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         try {
-            // Load .env
-            Properties env = new Properties();
-            env.load(new FileInputStream(".env"));
-
-            String url  = env.getProperty("DB_URL");
-            String user = env.getProperty("DB_USER");
-            String pass = env.getProperty("DB_PASSWORD");
-
-            Connection conn = DriverManager.getConnection(url, user, pass);
+            Connection conn = DatabaseManager.getConnection();
             System.out.println("Connected safely!");
 
             //Creating DB for now(you can change how this happens)
@@ -30,11 +22,13 @@ public class Main {
             stmt.execute(DatabaseConfig.CREATE_EXPIRY_TRIGGER); // Apply logic
             System.out.println("Expiry Date trigger applied successfully.");
 
-            applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_DONATIONS,"Donations -> Donors");
-            applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_COMPONENTS, "Components -> Donations");
-            applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_TRANSFUSIONS, "Transfusions -> Components");
+            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_DONATIONS,"Donations -> Donors");
+            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_COMPONENTS, "Components -> Donations");
+            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_TRANSFUSIONS, "Transfusions -> Components");
             System.out.println("Database setup complete!");
 
+            GraphingTool.showInventoryChart();
+            GraphingTool.showDistributionChart();
 
             conn.close();
 
@@ -42,17 +36,5 @@ public class Main {
             System.out.println("Error: " + e.getMessage());
         }
     }
-    private static void applyForeignKey(Statement stmt, String sql, String relationshipName) {
-        try {
-            stmt.execute(sql);
-            System.out.println("Added foreign key: " + relationshipName);
-        } catch (SQLException e) {
-            // 1061 is the MySQL/MariaDB code for "Duplicate key name"
-            if (e.getErrorCode() == 1061 || e.getMessage().contains("Duplicate")) {
-                System.out.println("Foreign key already exists (Skipping): " + relationshipName);
-            } else {
-                System.err.println("Error applying foreign key for " + relationshipName + ": " + e.getMessage());
-            }
-        }
-    }
+
 }

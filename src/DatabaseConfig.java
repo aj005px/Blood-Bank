@@ -1,3 +1,6 @@
+import java.sql.SQLException;
+import java.sql.Statement;
+// Has all the queries functions we need to create a DB
 public class DatabaseConfig {
     //Contains all the SQL queries we require
     public static final String CREATE_DONORS_TABLE = """
@@ -67,4 +70,17 @@ public class DatabaseConfig {
                             END IF;
                         END;
             """;
+    public static void applyForeignKey(Statement stmt, String sql, String relationshipName) {
+        try {
+            stmt.execute(sql);
+            System.out.println("Added foreign key: " + relationshipName);
+        } catch (SQLException e) {
+            // 1061 is the MySQL/MariaDB code for "Duplicate key name"
+            if (e.getErrorCode() == 1061 || e.getMessage().contains("Duplicate")) {
+                System.out.println("Foreign key already exists (Skipping): " + relationshipName);
+            } else {
+                System.err.println("Error applying foreign key for " + relationshipName + ": " + e.getMessage());
+            }
+        }
+    }
 }
