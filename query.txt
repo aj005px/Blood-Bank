@@ -1,0 +1,106 @@
+-- 1. Insert Donors
+INSERT INTO `Donors` (`name`, `blood_group`) VALUES
+('Alice Smith', 'O-'),
+('Bob Johnson', 'A+'),
+('Charlie Brown', 'B+');
+
+-- 2. Insert Donations (Linking to the 3 Donors above)
+INSERT INTO `Donations` (`donor_id`, `donation_date`) VALUES
+(1, '2023-10-01'),
+(2, '2023-10-05'),
+(3, '2023-10-10');
+
+-- 3. Insert Blood Components (Notice 'expiry_date' is completely gone!)
+INSERT INTO `Blood_Components` (`donation_id`, `component_type`, `volume_ml`, `status`) VALUES
+(1, 'Whole Blood', 450, 'Available'),
+(1, 'Plasma', 200, 'Used'),
+(2, 'Red Blood Cells', 250, 'Available'),
+(3, 'Platelets', 50, 'Used');
+
+-- 4. Insert Transfusions (Linking to the 'Used' components)
+INSERT INTO `Transfusions` (`component_id`, `patient_name`, `transfusion_date`) VALUES
+(2, 'David Clark', '2023-10-02'),
+(4, 'Eve Davis', '2023-10-11');
+-- 1. Insert 12 New Donors (Heavy on O and A types, as they are most common)
+INSERT INTO `Donors` (`name`, `blood_group`) VALUES
+('Diana Prince', 'O+'),
+('Ethan Hunt', 'A-'),
+('Fiona Gallagher', 'AB+'),
+('George Costanza', 'O-'),
+('Hermione Granger', 'A+'),
+('Ian Malcolm', 'B-'),
+('Jessica Jones', 'O+'),
+('Kevin Malone', 'AB-'),
+('Leslie Knope', 'O+'),
+('Michael Scott', 'A+'),
+('Natasha Romanoff', 'B+'),
+('Oscar Martinez', 'O-');
+
+-- 2. Insert 12 Donations (Linking to Donor IDs 4 through 15)
+-- Using CURDATE() so they all log as today
+INSERT INTO `Donations` (`donor_id`, `donation_date`) VALUES
+(4, CURDATE()),
+(5, CURDATE()),
+(6, CURDATE()),
+(7, CURDATE()),
+(8, CURDATE()),
+(9, CURDATE()),
+(10, CURDATE()),
+(11, CURDATE()),
+(12, CURDATE()),
+(13, CURDATE()),
+(14, CURDATE()),
+(15, CURDATE());
+
+-- 3. Insert 22 Blood Components (Lots of volume for your graphs!)
+-- We split some donations into RBC/Plasma/Platelets, and kept others as Whole Blood.
+-- ONLY ONE is marked as 'Used'.
+INSERT INTO `Blood_Components` (`donation_id`, `component_type`, `volume_ml`, `status`) VALUES
+(4, 'Red Blood Cells', 250, 'Available'),
+(4, 'Plasma', 200, 'Available'),
+(4, 'Platelets', 50, 'Available'),
+(5, 'Whole Blood', 450, 'Available'),
+(6, 'Red Blood Cells', 250, 'Available'),
+(6, 'Plasma', 200, 'Available'),
+(7, 'Whole Blood', 450, 'Available'),
+(8, 'Red Blood Cells', 250, 'Available'),
+(8, 'Platelets', 50, 'Available'),
+(9, 'Plasma', 200, 'Available'),
+(10, 'Whole Blood', 450, 'Available'),
+(11, 'Red Blood Cells', 250, 'Available'),
+(11, 'Plasma', 200, 'Available'),
+(11, 'Platelets', 50, 'Available'),
+(12, 'Whole Blood', 450, 'Available'),
+(13, 'Red Blood Cells', 250, 'Available'),
+(13, 'Plasma', 250, 'Used'),      -- <-- The only 'Used' one in this batch (Component ID 21)
+(14, 'Whole Blood', 450, 'Available'),
+(15, 'Red Blood Cells', 250, 'Available'),
+(15, 'Plasma', 200, 'Available'),
+(15, 'Platelets', 50, 'Available');
+
+-- 4. Insert 1 Transfusion (Linking to that single 'Used' Plasma above)
+-- Assuming the previous batch ended at Component ID 4, the 'Used' plasma above is Component ID 21
+INSERT INTO `Transfusions` (`component_id`, `patient_name`, `transfusion_date`) VALUES
+(21, 'Sarah Connor', CURDATE());
+
+
+
+// SQL query to show everything at once using left join
+SELECT
+    d.name AS 'Donor Name',
+    d.blood_group AS 'Blood Group',
+    dn.donation_date AS 'Donated On',
+    bc.component_type AS 'Component Type',
+    bc.volume_ml AS 'Volume (ml)',
+    bc.expiry_date AS 'Expiry Date',
+    bc.status AS 'Status',
+    t.patient_name AS 'Transfused To',
+    t.transfusion_date AS 'Transfusion Date'
+FROM `Donors` d
+JOIN `Donations` dn
+    ON d.donor_id = dn.donor_id
+JOIN `Blood_Components` bc
+    ON dn.donation_id = bc.donation_id
+LEFT JOIN `Transfusions` t
+    ON bc.component_id = t.component_id
+ORDER BY dn.donation_date DESC, bc.component_type ASC;
