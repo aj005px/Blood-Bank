@@ -12,6 +12,8 @@ out/
 .springBeans
 .sts4-cache
 .env
+.idea/
+*.iml
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
