@@ -1,40 +1,42 @@
 import java.sql.*;
-import java.io.*;
-import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("Running from: " + new java.io.File(".").getAbsolutePath());
+
         try {
             Connection conn = DatabaseManager.getConnection();
-            System.out.println("Connected safely!");
+            System.out.println("  Connected to database successfully.");
 
-            //Creating DB for now(you can change how this happens)
-            //Right now these commands always run
             Statement stmt = conn.createStatement();
 
+            // Create tables
             stmt.execute(DatabaseConfig.CREATE_DONORS_TABLE);
             stmt.execute(DatabaseConfig.CREATE_DONATION_TABLE);
             stmt.execute(DatabaseConfig.CREATE_COMPONENTS_TABLE);
             stmt.execute(DatabaseConfig.CREATE_TRANSFUSIONS_TABLE);
-            System.out.println("Tables has been verified!");
 
-            stmt.execute(DatabaseConfig.DROP_EXPIRY_TRIGGER); // Clean slate
-            stmt.execute(DatabaseConfig.CREATE_EXPIRY_TRIGGER); // Apply logic
-            System.out.println("Expiry Date trigger applied successfully.");
+            // Triggers
+            stmt.execute(DatabaseConfig.DROP_EXPIRY_TRIGGER);
+            stmt.execute(DatabaseConfig.CREATE_EXPIRY_TRIGGER);
 
-            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_DONATIONS,"Donations -> Donors");
-            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_COMPONENTS, "Components -> Donations");
-            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_TRANSFUSIONS, "Transfusions -> Components");
-            System.out.println("Database setup complete!");
+            // Foreign Keys
+            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_DONATIONS,   "Donations -> Donors");
+            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_COMPONENTS,  "Components -> Donations");
+            DatabaseConfig.applyForeignKey(stmt, DatabaseConfig.FK_CONSTRAINT_TRANSFUSIONS,"Transfusions -> Components");
 
-            GraphingTool.showInventoryChart();
-            GraphingTool.showDistributionChart();
+            System.out.println("  Database setup complete.\n");
 
             conn.close();
 
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
+            // Run dummy data
+            //DatabaseManager.runSQLFile("../query.txt"); added data
 
+        } catch (Exception e) {
+            System.out.println("  Fatal DB error: " + e.getMessage());
+            return;
+        }
+
+        CLI.run();
+    }
 }
